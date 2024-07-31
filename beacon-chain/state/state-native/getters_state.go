@@ -252,7 +252,7 @@ func (b *BeaconState) ToProtoUnsafe() interface{} {
 			PendingConsolidations:         b.pendingConsolidations,
 			LatestBlockHash:               b.latestBlockHash[:],
 			LatestFullSlot:                b.latestFullSlot,
-			LatestExecutionPayloadHeader:  b.executionPayloadHeader,
+			LatestExecutionPayloadHeader:  b.latestExecutionPayloadHeaderEPBS,
 			LastWithdrawalsRoot:           b.lastWithdrawalsRoot[:],
 		}
 	default:
@@ -360,7 +360,7 @@ func (b *BeaconState) ToProto() interface{} {
 			InactivityScores:             inactivityScores,
 			CurrentSyncCommittee:         b.currentSyncCommitteeVal(),
 			NextSyncCommittee:            b.nextSyncCommitteeVal(),
-			LatestExecutionPayloadHeader: b.latestExecutionPayloadHeaderVal(),
+			LatestExecutionPayloadHeader: b.latestExecutionPayloadHeader.Copy(),
 		}
 	case version.Capella:
 		return &ethpb.BeaconStateCapella{
@@ -388,7 +388,7 @@ func (b *BeaconState) ToProto() interface{} {
 			InactivityScores:             inactivityScores,
 			CurrentSyncCommittee:         b.currentSyncCommitteeVal(),
 			NextSyncCommittee:            b.nextSyncCommitteeVal(),
-			LatestExecutionPayloadHeader: b.latestExecutionPayloadHeaderCapellaVal(),
+			LatestExecutionPayloadHeader: b.latestExecutionPayloadHeaderCapella.Copy(),
 			NextWithdrawalIndex:          b.nextWithdrawalIndex,
 			NextWithdrawalValidatorIndex: b.nextWithdrawalValidatorIndex,
 			HistoricalSummaries:          b.historicalSummariesVal(),
@@ -419,7 +419,7 @@ func (b *BeaconState) ToProto() interface{} {
 			InactivityScores:             b.inactivityScoresVal(),
 			CurrentSyncCommittee:         b.currentSyncCommitteeVal(),
 			NextSyncCommittee:            b.nextSyncCommitteeVal(),
-			LatestExecutionPayloadHeader: b.latestExecutionPayloadHeaderDenebVal(),
+			LatestExecutionPayloadHeader: b.latestExecutionPayloadHeaderDeneb.Copy(),
 			NextWithdrawalIndex:          b.nextWithdrawalIndex,
 			NextWithdrawalValidatorIndex: b.nextWithdrawalValidatorIndex,
 			HistoricalSummaries:          b.historicalSummariesVal(),
@@ -450,7 +450,7 @@ func (b *BeaconState) ToProto() interface{} {
 			InactivityScores:              b.inactivityScoresVal(),
 			CurrentSyncCommittee:          b.currentSyncCommitteeVal(),
 			NextSyncCommittee:             b.nextSyncCommitteeVal(),
-			LatestExecutionPayloadHeader:  b.latestExecutionPayloadHeaderElectraVal(),
+			LatestExecutionPayloadHeader:  b.latestExecutionPayloadHeaderElectra.Copy(),
 			NextWithdrawalIndex:           b.nextWithdrawalIndex,
 			NextWithdrawalValidatorIndex:  b.nextWithdrawalValidatorIndex,
 			HistoricalSummaries:           b.historicalSummariesVal(),

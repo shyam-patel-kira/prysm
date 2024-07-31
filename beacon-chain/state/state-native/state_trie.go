@@ -136,17 +136,17 @@ const (
 	phase0SharedFieldRefCount                     = 10
 	altairSharedFieldRefCount                     = 11
 	bellatrixSharedFieldRefCount                  = 12
-	capellaSharedFieldRefCount                    = 14
-	denebSharedFieldRefCount                      = 14
-	electraSharedFieldRefCount                    = 17
-	epbsSharedFieldRefCount                       = 17
+	capellaSharedFieldRefCount                    = 13
+	denebSharedFieldRefCount                      = 13
+	electraSharedFieldRefCount                    = 16
+	epbsSharedFieldRefCount                       = 16
 	experimentalStatePhase0SharedFieldRefCount    = 5
 	experimentalStateAltairSharedFieldRefCount    = 5
 	experimentalStateBellatrixSharedFieldRefCount = 6
-	experimentalStateCapellaSharedFieldRefCount   = 8
-	experimentalStateDenebSharedFieldRefCount     = 8
-	experimentalStateElectraSharedFieldRefCount   = 11
-	experimentalStateEpbsSharedFieldRefCount      = 11
+	experimentalStateCapellaSharedFieldRefCount   = 7
+	experimentalStateDenebSharedFieldRefCount     = 7
+	experimentalStateElectraSharedFieldRefCount   = 10
+	experimentalStateEpbsSharedFieldRefCount      = 10
 )
 
 // InitializeFromProtoPhase0 the beacon state from a protobuf representation.
@@ -217,11 +217,12 @@ func InitializeFromProtoUnsafePhase0(st *ethpb.BeaconState) (state.BeaconState, 
 
 		id: types.Enumerator.Inc(),
 
-		dirtyFields:      make(map[types.FieldIndex]bool, fieldCount),
-		dirtyIndices:     make(map[types.FieldIndex][]uint64, fieldCount),
-		stateFieldLeaves: make(map[types.FieldIndex]*fieldtrie.FieldTrie, fieldCount),
-		rebuildTrie:      make(map[types.FieldIndex]bool, fieldCount),
-		valMapHandler:    stateutil.NewValMapHandler(st.Validators),
+		dirtyFields:         make(map[types.FieldIndex]bool, fieldCount),
+		dirtyIndices:        make(map[types.FieldIndex][]uint64, fieldCount),
+		stateFieldLeaves:    make(map[types.FieldIndex]*fieldtrie.FieldTrie, fieldCount),
+		rebuildTrie:         make(map[types.FieldIndex]bool, fieldCount),
+		valMapHandler:       stateutil.NewValMapHandler(st.Validators),
+		validatorIndexCache: newFinalizedValidatorIndexCache(),
 	}
 
 	if features.Get().EnableExperimentalState {
@@ -323,11 +324,12 @@ func InitializeFromProtoUnsafeAltair(st *ethpb.BeaconStateAltair) (state.BeaconS
 
 		id: types.Enumerator.Inc(),
 
-		dirtyFields:      make(map[types.FieldIndex]bool, fieldCount),
-		dirtyIndices:     make(map[types.FieldIndex][]uint64, fieldCount),
-		stateFieldLeaves: make(map[types.FieldIndex]*fieldtrie.FieldTrie, fieldCount),
-		rebuildTrie:      make(map[types.FieldIndex]bool, fieldCount),
-		valMapHandler:    stateutil.NewValMapHandler(st.Validators),
+		dirtyFields:         make(map[types.FieldIndex]bool, fieldCount),
+		dirtyIndices:        make(map[types.FieldIndex][]uint64, fieldCount),
+		stateFieldLeaves:    make(map[types.FieldIndex]*fieldtrie.FieldTrie, fieldCount),
+		rebuildTrie:         make(map[types.FieldIndex]bool, fieldCount),
+		valMapHandler:       stateutil.NewValMapHandler(st.Validators),
+		validatorIndexCache: newFinalizedValidatorIndexCache(),
 	}
 
 	if features.Get().EnableExperimentalState {
@@ -433,11 +435,12 @@ func InitializeFromProtoUnsafeBellatrix(st *ethpb.BeaconStateBellatrix) (state.B
 
 		id: types.Enumerator.Inc(),
 
-		dirtyFields:      make(map[types.FieldIndex]bool, fieldCount),
-		dirtyIndices:     make(map[types.FieldIndex][]uint64, fieldCount),
-		stateFieldLeaves: make(map[types.FieldIndex]*fieldtrie.FieldTrie, fieldCount),
-		rebuildTrie:      make(map[types.FieldIndex]bool, fieldCount),
-		valMapHandler:    stateutil.NewValMapHandler(st.Validators),
+		dirtyFields:         make(map[types.FieldIndex]bool, fieldCount),
+		dirtyIndices:        make(map[types.FieldIndex][]uint64, fieldCount),
+		stateFieldLeaves:    make(map[types.FieldIndex]*fieldtrie.FieldTrie, fieldCount),
+		rebuildTrie:         make(map[types.FieldIndex]bool, fieldCount),
+		valMapHandler:       stateutil.NewValMapHandler(st.Validators),
+		validatorIndexCache: newFinalizedValidatorIndexCache(),
 	}
 
 	if features.Get().EnableExperimentalState {
@@ -547,11 +550,12 @@ func InitializeFromProtoUnsafeCapella(st *ethpb.BeaconStateCapella) (state.Beaco
 
 		id: types.Enumerator.Inc(),
 
-		dirtyFields:      make(map[types.FieldIndex]bool, fieldCount),
-		dirtyIndices:     make(map[types.FieldIndex][]uint64, fieldCount),
-		stateFieldLeaves: make(map[types.FieldIndex]*fieldtrie.FieldTrie, fieldCount),
-		rebuildTrie:      make(map[types.FieldIndex]bool, fieldCount),
-		valMapHandler:    stateutil.NewValMapHandler(st.Validators),
+		dirtyFields:         make(map[types.FieldIndex]bool, fieldCount),
+		dirtyIndices:        make(map[types.FieldIndex][]uint64, fieldCount),
+		stateFieldLeaves:    make(map[types.FieldIndex]*fieldtrie.FieldTrie, fieldCount),
+		rebuildTrie:         make(map[types.FieldIndex]bool, fieldCount),
+		valMapHandler:       stateutil.NewValMapHandler(st.Validators),
+		validatorIndexCache: newFinalizedValidatorIndexCache(),
 	}
 
 	if features.Get().EnableExperimentalState {
@@ -660,11 +664,12 @@ func InitializeFromProtoUnsafeDeneb(st *ethpb.BeaconStateDeneb) (state.BeaconSta
 		nextWithdrawalValidatorIndex:      st.NextWithdrawalValidatorIndex,
 		historicalSummaries:               st.HistoricalSummaries,
 
-		dirtyFields:      make(map[types.FieldIndex]bool, fieldCount),
-		dirtyIndices:     make(map[types.FieldIndex][]uint64, fieldCount),
-		stateFieldLeaves: make(map[types.FieldIndex]*fieldtrie.FieldTrie, fieldCount),
-		rebuildTrie:      make(map[types.FieldIndex]bool, fieldCount),
-		valMapHandler:    stateutil.NewValMapHandler(st.Validators),
+		dirtyFields:         make(map[types.FieldIndex]bool, fieldCount),
+		dirtyIndices:        make(map[types.FieldIndex][]uint64, fieldCount),
+		stateFieldLeaves:    make(map[types.FieldIndex]*fieldtrie.FieldTrie, fieldCount),
+		rebuildTrie:         make(map[types.FieldIndex]bool, fieldCount),
+		valMapHandler:       stateutil.NewValMapHandler(st.Validators),
+		validatorIndexCache: newFinalizedValidatorIndexCache(),
 	}
 
 	if features.Get().EnableExperimentalState {
@@ -782,11 +787,12 @@ func InitializeFromProtoUnsafeElectra(st *ethpb.BeaconStateElectra) (state.Beaco
 		pendingPartialWithdrawals:           st.PendingPartialWithdrawals,
 		pendingConsolidations:               st.PendingConsolidations,
 
-		dirtyFields:      make(map[types.FieldIndex]bool, fieldCount),
-		dirtyIndices:     make(map[types.FieldIndex][]uint64, fieldCount),
-		stateFieldLeaves: make(map[types.FieldIndex]*fieldtrie.FieldTrie, fieldCount),
-		rebuildTrie:      make(map[types.FieldIndex]bool, fieldCount),
-		valMapHandler:    stateutil.NewValMapHandler(st.Validators),
+		dirtyFields:         make(map[types.FieldIndex]bool, fieldCount),
+		dirtyIndices:        make(map[types.FieldIndex][]uint64, fieldCount),
+		stateFieldLeaves:    make(map[types.FieldIndex]*fieldtrie.FieldTrie, fieldCount),
+		rebuildTrie:         make(map[types.FieldIndex]bool, fieldCount),
+		valMapHandler:       stateutil.NewValMapHandler(st.Validators),
+		validatorIndexCache: newFinalizedValidatorIndexCache(), //only used in post-electra and only populates when finalizing, otherwise it falls back to processing the full validator set
 	}
 
 	if features.Get().EnableExperimentalState {
@@ -940,11 +946,11 @@ func (b *BeaconState) Copy() state.BeaconState {
 		finalizedCheckpoint:                 b.finalizedCheckpointVal(),
 		currentSyncCommittee:                b.currentSyncCommitteeVal(),
 		nextSyncCommittee:                   b.nextSyncCommitteeVal(),
-		latestExecutionPayloadHeader:        b.latestExecutionPayloadHeaderVal(),
-		latestExecutionPayloadHeaderCapella: b.latestExecutionPayloadHeaderCapellaVal(),
-		latestExecutionPayloadHeaderDeneb:   b.latestExecutionPayloadHeaderDenebVal(),
-		latestExecutionPayloadHeaderElectra: b.latestExecutionPayloadHeaderElectraVal(),
-		executionPayloadHeader:              b.executionPayloadHeaderVal(),
+		latestExecutionPayloadHeader:        b.latestExecutionPayloadHeader.Copy(),
+		latestExecutionPayloadHeaderCapella: b.latestExecutionPayloadHeaderCapella.Copy(),
+		latestExecutionPayloadHeaderDeneb:   b.latestExecutionPayloadHeaderDeneb.Copy(),
+		latestExecutionPayloadHeaderElectra: b.latestExecutionPayloadHeaderElectra.Copy(),
+		latestExecutionPayloadHeaderEPBS:    b.executionPayloadHeaderVal(),
 
 		id: types.Enumerator.Inc(),
 
@@ -1349,7 +1355,7 @@ func (b *BeaconState) rootSelector(ctx context.Context, field types.FieldIndex) 
 	case types.LatestFullSlot:
 		return ssz.Uint64Root(uint64(b.latestFullSlot)), nil
 	case types.ExecutionPayloadHeader:
-		return b.executionPayloadHeader.HashTreeRoot()
+		return b.latestExecutionPayloadHeaderEPBS.HashTreeRoot()
 	case types.LastWithdrawalsRoot:
 		return b.lastWithdrawalsRoot, nil
 	}
