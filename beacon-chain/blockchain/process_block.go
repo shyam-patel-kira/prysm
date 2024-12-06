@@ -79,16 +79,13 @@ func (s *Service) postBlockProcess(cfg *postBlockProcessConfig) error {
 	}
 
 	if slashing != nil {
-		// Immediately broadcast the slashing
 		if err := s.broadcastProposerSlashing(cfg.ctx, slashing); err != nil {
 			log.WithError(err).Error("Could not broadcast proposer slashing")
-			// Don't return error here, we still want to continue processing
 		}
 
 		// Also insert into slashing pool
 		if err := s.cfg.SlashingPool.InsertProposerSlashing(cfg.ctx, cfg.postState, slashing); err != nil {
 			log.WithError(err).Error("Could not insert proposer slashing into pool")
-			// Don't return error here, we still want to continue processing
 		}
 	}
 

@@ -606,9 +606,6 @@ func (s *Service) detectEquivocatingBlock(ctx context.Context, block interfaces.
 	}
 
 	// Check for equivocation:
-	// 1. Same slot
-	// 2. Same proposer index
-	// 3. Different signing roots
 	if header1.Header.Slot == header2.Header.Slot &&
 		header1.Header.ProposerIndex == header2.Header.ProposerIndex {
 
