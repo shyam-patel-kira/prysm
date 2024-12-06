@@ -72,6 +72,26 @@ func (s *Service) postBlockProcess(cfg *postBlockProcessConfig) error {
 	defer reportProcessingTime(startTime)
 	defer reportAttestationInclusion(cfg.roblock.Block())
 
+	// Check for equivocation before inserting into fork choice
+	slashing, slashingErr := s.detectEquivocatingBlock(cfg.ctx, cfg.roblock)
+	if slashingErr != nil {
+		return errors.Wrap(slashingErr, "could not detect equivocating block")
+	}
+
+	if slashing != nil {
+		// Immediately broadcast the slashing
+		if err := s.broadcastProposerSlashing(cfg.ctx, slashing); err != nil {
+			log.WithError(err).Error("Could not broadcast proposer slashing")
+			// Don't return error here, we still want to continue processing
+		}
+
+		// Also insert into slashing pool
+		if err := s.cfg.SlashingPool.InsertProposerSlashing(cfg.ctx, cfg.postState, slashing); err != nil {
+			log.WithError(err).Error("Could not insert proposer slashing into pool")
+			// Don't return error here, we still want to continue processing
+		}
+	}
+
 	err := s.cfg.ForkChoiceStore.InsertNode(ctx, cfg.postState, cfg.roblock)
 	if err != nil {
 		// Do not use parent context in the event it deadlined
@@ -703,4 +723,12 @@ func (s *Service) rollbackBlock(ctx context.Context, blockRoot [32]byte) {
 	if err := s.cfg.BeaconDB.DeleteBlock(ctx, blockRoot); err != nil {
 		log.WithError(err).Errorf("Could not delete block with block root %#x", blockRoot)
 	}
+}
+
+func (s *Service) broadcastProposerSlashing(ctx context.Context, slashing *ethpb.ProposerSlashing) error {
+	if features.Get().DisableBroadcastSlashings {
+		return nil
+	}
+
+	return s.cfg.P2p.Broadcast(ctx, slashing)
 }
